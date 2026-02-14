@@ -1,0 +1,81 @@
+###############################################################################
+#             SYSTÈME DE TRANSFORMATIONS MORPHOLOGIQUES (I'LAL & IBDAL)        #
+#                                                                             #
+# Format :                                                                    #
+#   clé_type:opération1;opération2                                            #
+#                                                                             #
+# Opérations disponibles :                                                    #
+#   replace=A>B        : Remplace toutes les occurrences de A par B           #
+#   replace_final=B    : Remplace le dernier caractère du mot par B           #
+###############################################################################
+
+# =============================================================================
+# 1. RACINES ASSIMILÉES (MITHAL - المثال)
+# Gestion de la rencontre entre la 1ère lettre faible et les préfixes.
+# =============================================================================
+# Assimilation du Waw/Ya dans le schème de la Forme VIII (افتعل)
+# Exemple : اوتصل -> اتّصل
+mithal_افتعل:replace=اوت>اتّ;replace=ايت>اتّ
+
+# =============================================================================
+# 2. RACINES CREUSES (AJWAF - الأجوف)
+# Gestion des modifications de la lettre médiane (Ayn).
+# =============================================================================
+# Transformation du Waw/Ya en Hamza (ئ) dans le nom d'agent (Ism Fa'il)
+# Exemple : قاول -> قائل
+ajwaf_فاعل:replace=او>ائ;replace=اي>ائ
+
+# Allègement du Waw/Ya dans le nom passif (Ism Maf'ul)
+# Exemple : مبيوع -> مبيع / مقوول -> مقول
+ajwaf_مفعول:replace=وو>و;replace=يو>ي
+
+# =============================================================================
+# 3. RACINES DÉFECTUEUSES (NAQIS - الناقص)
+# Gestion des terminaisons variables selon le schème.
+# =============================================================================
+# Règle de l'Ism Manqus (Tanwin al-Kasr sur la dernière lettre)
+# Exemple : رامي -> رامٍ
+naqis_فاعل:replace_final=ٍ
+
+# Fusion des lettres faibles finales (Idgham) dans le nom passif
+# Exemple : مدعوو -> مدعوّ / مرموي -> مرميّ
+naqis_مفعول:replace=وو>وّ;replace=يو>يّ
+
+# Passage à l'Alif Maqsura (ى) pour les formes dérivées VIII et X
+naqis_افتعل:replace_final=ى
+naqis_استفعل:replace_final=ى
+
+# Transformation du Masdar de la Forme II en terminaison féminine
+# Exemple : تصفية
+naqis_تفعيل:replace_final=ية
+
+# =============================================================================
+# 4. RACINES DOUBLEMENT FAIBLES (LAFIF - اللفيف)
+# Combinaison des règles Mithal et Naqis.
+# =============================================================================
+lafif_فاعل:replace_final=ٍ
+lafif_مفعول:replace=وو>وّ;replace=يو>يّ;replace=يو>ى
+lafif_افتعل:replace=اوت>اتّ;replace_final=ى
+lafif_استفعل:replace_final=ى
+lafif_تفعيل:replace_final=ية
+
+# =============================================================================
+# 5. ASSIMILATIONS PHONÉTIQUES SPÉCIALES (IDGHAM)
+# Gestion des rencontres consonantiques particulières.
+# =============================================================================
+# Cas de la Forme VIII avec les racines commençant par Dal (ex: دعو)
+# Exemple : ادتعى -> ادّعى
+naqis_افتعل:replace=ادت>ادّ;replace_final=ى
+
+
+
+
+# =============================================================================
+# 6. EXCEPTIONS SPÉCIFIQUES
+# Cas particuliers ne suivant pas les règles générales.
+# =============================================================================
+exception_قول_فاعل:replace=او>ائل
+
+###############################################################################
+# FIN DU FICHIER                                                              #
+###############################################################################

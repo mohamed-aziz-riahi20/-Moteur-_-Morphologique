@@ -107,4 +107,10 @@ const VisualizerTab: React.FC = () => {
   );
 };
 
+
+
+
+
+
+
 export default VisualizerTab;

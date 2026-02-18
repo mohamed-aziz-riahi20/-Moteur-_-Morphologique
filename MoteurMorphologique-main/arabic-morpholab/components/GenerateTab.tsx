@@ -9,7 +9,8 @@ const GenerateTab: React.FC = () => {
   const [rootsList, setRootsList] = useState<string[]>([]);
   const [schemesList, setSchemesList] = useState<string[]>([]);
   const [result, setResult] = useState<string | null>(null);
-  const [results, setResults] = useState<string[]>([]);
+  const [resultScheme, setResultScheme] = useState<string | null>(null);
+  const [results, setResults] = useState<Array<{ derivative: string; scheme: string }>>([]);
   const [loading, setLoading] = useState(false);
 
   // Chargement initial des données
@@ -33,10 +34,12 @@ const GenerateTab: React.FC = () => {
     if (!root || !scheme) return;
     setLoading(true);
     setResult(null);
+    setResultScheme(null);
     setResults([]);
     try {
       const res = await morphologyApi.generate({ root, scheme });
       setResult(res);
+      setResultScheme(scheme);
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -48,11 +51,63 @@ const GenerateTab: React.FC = () => {
     if (!root) return;
     setLoading(true);
     setResult(null);
+    setResultScheme(null);
     setResults([]);
     try {
       const res = await morphologyApi.generateAll({ root });
-      setResults(res);
+      
+      // ✅ Vérification complète et sécurisée
+      if (res && Array.isArray(res) && res.length > 0) {
+        const firstElement = res[0];
+        
+        // Cas 1: L'API retourne déjà des objets {derivative, scheme}
+        if (
+          firstElement && 
+          typeof firstElement === 'object' && 
+          !Array.isArray(firstElement) &&
+          'derivative' in firstElement && 
+          'scheme' in firstElement
+        ) {
+          console.log('✅ API retourne déjà le bon format');
+          const formattedResults = res.map((item: any) => ({
+  derivative: item.derivative,
+  scheme: item.scheme
+}));
+setResults(formattedResults);
+        } 
+        // Cas 2: L'API retourne juste des strings
+        else if (typeof firstElement === 'string') {
+          console.log('⚙️ Génération manuelle des schèmes');
+          const derivativesWithSchemes: Array<{ derivative: string; scheme: string }> = [];
+          
+          // Générer un mot pour chaque schème disponible
+          for (const currentScheme of schemesList) {
+            try {
+              const derivative = await morphologyApi.generate({ root, scheme: currentScheme });
+              if (derivative) {
+                derivativesWithSchemes.push({
+                  derivative: derivative,
+                  scheme: currentScheme
+                });
+              }
+            } catch (err) {
+              // Ignorer les erreurs pour les schèmes non applicables
+              
+            }
+          }
+          
+          setResults(derivativesWithSchemes);
+        } else {
+          console.warn('⚠️ Format de réponse inattendu:', firstElement);
+          setResults([]);
+        }
+      } else {
+        // Aucun résultat
+        console.log('⚠️ Aucun résultat retourné par l\'API');
+        setResults([]);
+      }
     } catch (err: any) {
+      console.error('Erreur:', err);
       alert(err.message);
     } finally {
       setLoading(false);
@@ -109,16 +164,40 @@ const GenerateTab: React.FC = () => {
           <h3 className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-4">Résultats</h3>
          
           {result && (
-            <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-between border border-emerald-100 dark:border-emerald-900/40 mb-4">
-              <span className="text-slate-500 dark:text-slate-400 font-medium">Mot généré :</span>
-              <span className="arabic-font text-3xl text-emerald-700 dark:text-emerald-400">{result}</span>
+            <div className="p-6 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl border border-emerald-100 dark:border-emerald-900/40 mb-4">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 dark:text-slate-400 font-medium">Mot généré :</span>
+                <span className="arabic-font text-3xl text-emerald-700 dark:text-emerald-400">{result}</span>
+              </div>
+              {resultScheme && (
+                <div className="mt-3 pt-3 border-t border-emerald-200 dark:border-emerald-800/40 flex items-center justify-between">
+                  <span className="text-sm text-slate-500 dark:text-slate-400">Schème utilisé :</span>
+                  <span className="arabic-font text-xl text-teal-600 dark:text-teal-400 font-medium">{resultScheme}</span>
+                </div>
+              )}
             </div>
           )}
           {results.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {results.map((word, idx) => (
-                <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl flex flex-col items-center justify-center border border-slate-100 dark:border-slate-800 hover:border-emerald-200 dark:hover:border-emerald-700 transition-all cursor-default group">
-                  <span className="arabic-font text-2xl text-slate-700 dark:text-slate-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{word}</span>
+              {results.map((item, idx) => (
+                <div 
+                  key={idx} 
+                  className="p-4 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600 hover:shadow-md transition-all cursor-default group"
+                >
+                  {/* Mot dérivé */}
+                  <div className="text-center mb-3 pb-3 border-b border-slate-200 dark:border-slate-700">
+                    <span className="arabic-font text-2xl text-slate-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors font-bold">
+                      {item.derivative}
+                    </span>
+                  </div>
+                  
+                  {/* Schème */}
+                  <div className="text-center">
+                    <div className="text-xs text-slate-500 dark:text-slate-500 mb-1">Schème</div>
+                    <span className="arabic-font text-lg text-teal-600 dark:text-teal-400 font-medium">
+                      {item.scheme}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

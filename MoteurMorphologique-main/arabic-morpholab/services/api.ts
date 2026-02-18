@@ -189,4 +189,47 @@ export const morphologyApi = {
     const response = await fetch(`${BASE_URL}/debug/hash`);
     return handleResponse(response);
   },
+
+
+
+
+   updateScheme: async (request: SchemeRequest): Promise<string> => {
+  const response = await fetch(`${BASE_URL}/scheme`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+  return handleResponse(response);
+},
+
+deleteScheme: async (scheme: string): Promise<string> => {
+  const response = await fetch(`${BASE_URL}/scheme/${encodeURIComponent(scheme)}`, {
+    method: 'DELETE',
+  });
+  return handleResponse(response);
+},
+
+
+
+
+/**
+ * Récupère tous les schèmes avec leurs règles (Map nom → règle)
+ */
+getSchemesDetails: async (): Promise<Record<string, string>> => {
+  const response = await fetch(`${BASE_URL}/schemes/details`);
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || 'Erreur serveur');
+  }
+
+  const json = await response.json();
+  
+  // Optionnel : petite vérification basique
+  if (typeof json !== 'object' || json === null) {
+    throw new Error('Format inattendu pour les schèmes');
+  }
+
+  return json as Record<string, string>;
+},
 };

@@ -137,4 +137,33 @@ public interface MorphologyService {
 
     StatisticsResponse computeStatistics();
 
+
+
+
+
+
+
+    /**
+     * Met à jour la règle associée à un schème existant.
+     * @param scheme nom exact du schème (clé)
+     * @param newRule nouvelle règle à associer
+     * @throws IllegalArgumentException si le schème n'existe pas
+     */
+    void updateScheme(String scheme, String newRule);
+
+    /**
+     * Supprime complètement un schème (mémoire + fichier).
+     * @param scheme nom exact du schème à supprimer
+     * @throws IllegalArgumentException si le schème n'existe pas
+     */
+    void deleteScheme(String scheme);
+
+
+
+
+    /**
+     * Retourne tous les schèmes avec leurs règles (Map<nom, règle>)
+     * Utile pour l'édition dans l'interface admin
+     */
+    Map<String, String> getSchemesWithRules();
 }

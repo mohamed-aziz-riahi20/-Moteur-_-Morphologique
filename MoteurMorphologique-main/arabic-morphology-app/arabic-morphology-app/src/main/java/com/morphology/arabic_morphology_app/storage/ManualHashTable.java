@@ -133,4 +133,46 @@ public class ManualHashTable {
     public Entry[] getInternalTable() {
         return table;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Supprime l'entrée correspondant à la clé donnée.
+     * @param key la clé à supprimer
+     * @return la valeur qui était associée (ou null si absent)
+     */
+    public String remove(String key) {
+        if (key == null) return null;
+
+        int index = hash(key);
+        Entry current = table[index];
+        Entry previous = null;
+
+        while (current != null) {
+            if (current.key.equals(key)) {
+                if (previous == null) {
+                    // Suppression en tête de liste
+                    table[index] = current.next;
+                } else {
+                    // Suppression au milieu ou en fin
+                    previous.next = current.next;
+                }
+                return current.value;
+            }
+            previous = current;
+            current = current.next;
+        }
+
+        return null; // non trouvé
+    }
 }

@@ -148,4 +148,45 @@ public class MorphologyController {
     public StatisticsResponse getStatistics() {
         return service.computeStatistics();
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    @PutMapping("/scheme")
+    public String updateScheme(@RequestBody SchemeRequest request) {
+        service.updateScheme(request.getScheme(), request.getRule());
+        return "Schème mis à jour avec succès : " + request.getScheme();
+    }
+
+    @DeleteMapping("/scheme/{scheme}")
+    public String deleteScheme(@PathVariable String scheme) {
+        service.deleteScheme(scheme);
+        return "Schème supprimé avec succès : " + scheme;
+    }
+
+
+
+
+    /**
+     * Récupère tous les schèmes avec leurs règles associées (pour édition)
+     */
+    @GetMapping("/schemes/details")
+    public Map<String, String> getSchemesDetails() {
+        return service.getSchemesWithRules();
+    }
 }

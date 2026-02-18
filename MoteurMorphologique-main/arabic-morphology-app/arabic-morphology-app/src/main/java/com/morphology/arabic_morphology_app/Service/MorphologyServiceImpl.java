@@ -475,4 +475,84 @@ public class MorphologyServiceImpl implements MorphologyService {
         }
         return structure;
     }
+
+
+
+
+
+
+
+
+
+    @Override
+    public void updateScheme(String scheme, String newRule) {
+        // Vérifier existence
+        if (patternTable.get(scheme) == null) {
+            throw new IllegalArgumentException("Schème non trouvé : " + scheme);
+        }
+
+        // Mise à jour en mémoire
+        patternTable.put(scheme, newRule);
+
+        // Persistance complète (on réécrit tout le fichier)
+        rewriteAllSchemes();
+    }
+
+    @Override
+    public void deleteScheme(String scheme) {
+        // Vérifier existence
+        if (patternTable.get(scheme) == null) {
+            throw new IllegalArgumentException("Schème non trouvé : " + scheme);
+        }
+
+        // Suppression en mémoire
+        patternTable.remove(scheme);
+
+        // Persistance complète
+        rewriteAllSchemes();
+    }
+
+    /**
+     * Réécrit TOUT le fichier schemes.txt à partir de l'état actuel de la table.
+     * Nécessaire pour update et delete (append ne suffit plus).
+     */
+    private void rewriteAllSchemes() {
+        String filePath = "src/main/resources/schemes.txt";
+        try (BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(filePath, false), StandardCharsets.UTF_8))) {
+
+            // On écrit d'abord les commentaires si tu en avais (optionnel)
+            writer.write("# schemes.txt - généré le " + new java.util.Date());
+            writer.newLine();
+            writer.newLine();
+
+            // Écriture de toutes les entrées
+            for (String[] entry : patternTable.getAll()) {
+                writer.write(entry[0] + "=" + entry[1]);
+                writer.newLine();
+            }
+
+            System.out.println("Fichier schemes.txt réécrit avec succès (" + patternTable.getAll().size() + " schèmes).");
+
+        } catch (IOException e) {
+            System.err.println("Erreur réécriture schemes.txt : " + e.getMessage());
+            throw new RuntimeException("Échec persistance des schèmes", e);
+        }
+    }
+
+
+
+
+
+
+    @Override
+    public Map<String, String> getSchemesWithRules() {
+        Map<String, String> result = new LinkedHashMap<>(); // pour garder un ordre prévisible
+        for (String[] entry : patternTable.getAll()) {
+            result.put(entry[0], entry[1]);
+        }
+        return result;
+    }
+
+
 }

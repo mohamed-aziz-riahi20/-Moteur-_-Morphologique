@@ -82,10 +82,7 @@ const Statistics: React.FC<StatisticsProps> = ({ roots, patterns, stats }) => {
               <p>Hash Table</p>
               <span className="text-emerald-400 font-mono">O(1)</span>
             </div>
-            <div className="flex justify-between">
-              <p>Génération</p>
-              <span className="text-emerald-400 font-mono">O(1)</span>
-            </div>
+            
           </div>
         </div>
       </div>

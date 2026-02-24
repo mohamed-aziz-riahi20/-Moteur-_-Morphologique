@@ -30,12 +30,24 @@ public class ManualHashTable {
     }
 
     private Entry[] table;
-    private final int capacity = 16;
+    private int size = 0;
+    private final double loadFactor = 0.75;
+    private int capacity;
 
     /**
-     * Initialise la table avec une capacité fixe.
+     * Initialise la table avec une capacité initiale.
      */
     public ManualHashTable() {
+        this.capacity = 16;
+        table = new Entry[capacity];
+    }
+
+    /**
+     * Initialise la table avec une capacité initiale personnalisée.
+     * @param initialCapacity La capacité initiale.
+     */
+    public ManualHashTable(int initialCapacity) {
+        this.capacity = initialCapacity;
         table = new Entry[capacity];
     }
 
@@ -65,6 +77,8 @@ public class ManualHashTable {
      * @param value La règle de construction.
      */
     public void put(String key, String value) {
+        if (key == null) return;
+
         int h = hash(key);
         Entry current = table[h];
 
@@ -81,6 +95,12 @@ public class ManualHashTable {
         Entry newEntry = new Entry(key, value);
         newEntry.next = table[h];
         table[h] = newEntry;
+        size++;
+
+        // Vérification si on doit redimensionner
+        if (size > capacity * loadFactor) {
+            resize(capacity * 2);
+        }
     }
 
     /**
@@ -100,6 +120,37 @@ public class ManualHashTable {
             current = current.next;
         }
         return null;
+    }
+
+    /**
+     * Supprime l'entrée correspondant à la clé donnée.
+     * @param key la clé à supprimer
+     * @return la valeur qui était associée (ou null si absent)
+     */
+    public String remove(String key) {
+        if (key == null) return null;
+
+        int index = hash(key);
+        Entry current = table[index];
+        Entry previous = null;
+
+        while (current != null) {
+            if (current.key.equals(key)) {
+                if (previous == null) {
+                    // Suppression en tête de liste
+                    table[index] = current.next;
+                } else {
+                    // Suppression au milieu ou en fin
+                    previous.next = current.next;
+                }
+                size--;
+                return current.value;
+            }
+            previous = current;
+            current = current.next;
+        }
+
+        return null; // non trouvé
     }
 
     // ==========================================
@@ -134,45 +185,65 @@ public class ManualHashTable {
         return table;
     }
 
+    /**
+     * Redimensionne la table de hachage à une nouvelle capacité.
+     * @param newCapacity La nouvelle capacité.
+     */
+    private void resize(int newCapacity) {
+        Entry[] oldTable = table;
+        capacity = newCapacity;
+        table = new Entry[capacity];
+        size = 0;  // on va recompter pendant le rehash
 
-
-
-
-
-
-
-
-
-
-
+        // Re-hachage de tous les éléments
+        for (Entry entry : oldTable) {
+            Entry current = entry;
+            while (current != null) {
+                put(current.key, current.value);   // ← on réutilise put()
+                current = current.next;
+            }
+        }
+    }
 
     /**
-     * Supprime l'entrée correspondant à la clé donnée.
-     * @param key la clé à supprimer
-     * @return la valeur qui était associée (ou null si absent)
+     * Retourne le nombre d'entrées dans la table.
+     * @return Le nombre d'entrées.
      */
-    public String remove(String key) {
-        if (key == null) return null;
+    public int size() {
+        return size;
+    }
 
-        int index = hash(key);
-        Entry current = table[index];
-        Entry previous = null;
+    /**
+     * Retourne la capacité actuelle de la table.
+     * @return La capacité.
+     */
+    public int capacity() {
+        return capacity;
+    }
 
-        while (current != null) {
-            if (current.key.equals(key)) {
-                if (previous == null) {
-                    // Suppression en tête de liste
-                    table[index] = current.next;
-                } else {
-                    // Suppression au milieu ou en fin
-                    previous.next = current.next;
-                }
-                return current.value;
+    /**
+     * Calcule et retourne le facteur de charge actuel.
+     * @return Le facteur de charge.
+     */
+    public double getLoadFactor() {
+        return (double) size / capacity;
+    }
+
+    /**
+     * Retourne la longueur de la chaîne la plus longue (pour débogage des collisions).
+     * @return La longueur maximale d'une chaîne.
+     */
+    public int getLongestChain() {
+        int max = 0;
+        for (Entry e : table) {
+            int len = 0;
+            Entry current = e;
+            while (current != null) {
+                len++;
+                current = current.next;
             }
-            previous = current;
-            current = current.next;
+            max = Math.max(max, len);
         }
-
-        return null; // non trouvé
+        return max;
     }
 }
